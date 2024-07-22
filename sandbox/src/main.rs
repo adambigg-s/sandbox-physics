@@ -3,11 +3,12 @@
 
 mod config;
 mod universe;
-mod particles;
 mod god;
 mod test;
 mod utils;
 mod vector;
+mod particle_updates;
+mod particles;
 
 
 
@@ -19,59 +20,58 @@ use macroquad::prelude::*;
 use config::{window_configuration, State, CELL_SIZE};
 use universe::Universe;
 use particles::*;
-use utils::{disretize_mouse,  utility_test};
+use utils::{utility_test, interpolate_f32};
+use vector::Vector;
 
 
 
 #[macroquad::main(window_configuration)]
 async fn main() {
     println!("Hello, falling sand!");
-    let mut universe: Universe = Universe::new();
-    let mut size: isize = 10;
-    let mut state: State = State::Simulation;
-
+    let mut universe:      Universe = Universe::new();
+    let mut size:          isize = 10;
+    let mut state:         State = State::Simulation;
+    let mut particle_type: usize = 0;
+    let mut prev_mouse:    Option<Vector<f32>> = None;
+    
     let util_test: String = utility_test();
     println!("{}", util_test);
 
-    let _ = universe.curr[0][0].velocity.x;
-
     loop {
-        clear_background(Color::from_rgba(150, 180, 190, 230));
+        clear_background(Color::from_rgba(220, 235, 245, 230));
 
         universe.draw();
-        if state == State::Debug {
-            universe.draw_debug();
+        if state == State::Simulation {
+            universe.update();
         }
-        universe.update();
+
+        if is_key_pressed(KeyCode::W) {
+            particle_type = (particle_type + 1).rem_euclid(ParticleType::get_types());
+        } else if is_key_pressed(KeyCode::Q) {
+            particle_type = (particle_type as isize - 1).rem_euclid(ParticleType::get_types() as isize) as usize;
+        }
 
         if is_mouse_button_down(MouseButton::Left) {
-            let (x, y) = disretize_mouse(CELL_SIZE);
-            universe.add_cluster(ParticleType::Sand, x, y, size, true)
-        } else if is_mouse_button_down(MouseButton::Right) {
-            let (x, y) = disretize_mouse(CELL_SIZE);
-            universe.add_cluster(ParticleType::Water, x, y, size, true)
-        } else if is_key_down(KeyCode::A) {
-            let (x, y) = disretize_mouse(CELL_SIZE);
-            universe.add_cluster(ParticleType::Stone, x, y, size, true )
-        } else if is_key_down(KeyCode::C) {
-            let (x, y) = disretize_mouse(CELL_SIZE);
-            universe.add_cluster(ParticleType::None, x, y, size, false)
-        } else if is_key_down(KeyCode::H) {
-            let (x, y) = disretize_mouse(CELL_SIZE);
-            universe.add_cluster(ParticleType::Coal, x, y, size, true )
-        } else if is_key_down(KeyCode::F) {
-            let (x, y) = disretize_mouse(CELL_SIZE);
-            universe.add_cluster(ParticleType::Fire, x, y, size, true);
-        } else if is_key_down(KeyCode::O) {
-            let (x, y) = disretize_mouse(CELL_SIZE);
-            universe.add_cluster(ParticleType::Oil, x, y, size, true);
-        } else if is_key_down(KeyCode::W) {
-            let (x, y) = disretize_mouse(CELL_SIZE);
-            universe.add_cluster(ParticleType::Wood, x, y, size, true);
-        } else if is_key_down(KeyCode::G) {
-            let (x, y) = disretize_mouse(CELL_SIZE);
-            universe.add_cluster(ParticleType::Gravel, x, y, size, true);
-        }
+            let (x, y) = mouse_position();
+            if let Some(prev) = prev_mouse {
+                let points: Vec<Vector<f32>> = interpolate_f32(
+                    prev,
+                    Vector { x, y } 
+                );
+                for point in points {
+                    universe.add_cluster(
+                        ParticleType::get_from_int(particle_type),
+                        (point.x / CELL_SIZE) as usize,
+                        (point.y / CELL_SIZE) as usize, 
+                        size,
+                        true
+                    );
+                }
+            }
+            prev_mouse = Some(
+                Vector { x, y }
+            );
+        } else { prev_mouse = None; }
 
         if is_key_pressed(KeyCode::R) {
             universe.clear();
@@ -80,7 +80,10 @@ async fn main() {
         if is_key_pressed(KeyCode::P) {
             if state == State::Simulation {
                 state = State::Debug;
-            } else { state = State::Simulation ; } 
+            } else { state = State::Simulation; } 
+        }
+        if is_key_down(KeyCode::D) {
+            universe.draw_debug();
         }
 
         if is_key_pressed(KeyCode::Key1) {
@@ -91,6 +94,7 @@ async fn main() {
         
         draw_text(&format!("FPS: {}", get_fps()), 10.0, 20.0, 22.5, BLACK);
         draw_text(&format!("SIZE: {}", size), 10.0, 40.0, 22.5, BLACK);
+        draw_text(&format!("Type: {:?}", ParticleType::get_from_int(particle_type)), 10.0, 60.0, 22.5, BLACK);
         next_frame().await;
         thread::sleep(Duration::from_millis(1));
     }

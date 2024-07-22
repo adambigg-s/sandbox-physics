@@ -19,30 +19,30 @@ use god::God;
 
 pub struct Universe {
     height: usize,
-    width: usize,
-    size: f32,
-    pub gravity: f32,
-    pub max_vel: f32,
+    width:  usize,
+    size:   f32,
+    pub gravity:      f32,
+    pub max_vel:      f32,
     pub default_fall: f32, 
-    pub curr: Vec<Vec<Particle>>,
+    pub curr:         Vec<Vec<Particle>>,
 }
 
 impl Universe {
     pub fn new() -> Universe {
         let blank: Vec<Vec<Particle>> = vec![vec![Particle::new(ParticleType::None); UNIVERSE_WIDTH]; UNIVERSE_HEIGHT];
         Universe {
-            height: UNIVERSE_HEIGHT,
-            width: UNIVERSE_WIDTH,
-            size: CELL_SIZE,
-            gravity: GRAVITY,
-            max_vel: SPEED_MAX,
+            height:       UNIVERSE_HEIGHT,
+            width:        UNIVERSE_WIDTH,
+            size:         CELL_SIZE,
+            gravity:      GRAVITY,
+            max_vel:      SPEED_MAX,
             default_fall: FALLING_START,
-            curr: blank,
+            curr:         blank,
         }
     }
 
     pub fn in_bounds(&self, x: usize, y: usize) -> bool {
-        if x < self.width && y < self.height { true } else { false }
+        x < self.width && y < self.height
     }
 
     pub fn clear(&mut self) {
@@ -66,6 +66,7 @@ impl Universe {
         for i in (-size)..(size+1) {
             for j in (-size)..(size+1) {
                 if rounded && (i * i + j * j) > size * size { continue; }
+                if particle_type.spawns_fail() { continue; }
                 let (dx, dy): (usize, usize) = ((x as isize + j) as usize, (y as isize + i) as usize);
                 if self.in_bounds(dx, dy) {
                     self.add_particle(particle_type, dx, dy);
@@ -120,8 +121,7 @@ impl Universe {
                 for j in 0..self.width {
                     self.update_handler(j, i);
                 }
-            } 
-            else {
+            } else {
                 for j in (0..self.width).rev() {
                     self.update_handler(j, i);
                 }

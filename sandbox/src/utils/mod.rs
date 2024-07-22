@@ -1,7 +1,15 @@
 
 
 
+use crate::vector;
+
+
+
 use macroquad::prelude::*;
+
+
+
+use vector::Vector;
 
 
 
@@ -21,9 +29,32 @@ pub fn chance_100(chance: isize) -> bool {
     mag_rand(100) < chance
 }
 
-pub fn disretize_mouse(grid: f32) -> (usize, usize) {
-    let (x, y): (f32, f32) = mouse_position();
-    ((x / grid) as usize, (y / grid) as usize)
+pub fn chance_1000(chance: isize) -> bool {
+    mag_rand(1000) < chance
+}
+
+pub fn interpolate_f32(a: Vector<f32>, b: Vector<f32>) -> Vec<Vector<f32>> {
+    let dx: f32 = b.x - a.x;
+    let dy: f32 = b.y - a.y;
+    let distance: f32 = (dx * dx + dy * dy).sqrt();
+    let steps: usize = distance.round() as usize;
+    let mut points: Vec<Vector<f32>> = Vec::new();
+
+    if steps > 0 { } else {
+        points.push(b);
+        return points; 
+    }
+    for i in 0..(steps+1) {
+        let t: f32 = (i as f32) / distance;
+        points.push(
+            Vector {
+                x: a.x + t * dx,
+                y: a.y + t * dy,
+            }
+        );
+    }
+    
+    points
 }
 
 

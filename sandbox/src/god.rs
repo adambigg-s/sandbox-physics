@@ -14,8 +14,8 @@ use vector::Vector;
 
 
 pub struct God<'a> {
-    x: usize,
-    y: usize,
+    x:        usize,
+    y:        usize,
     universe: &'a mut Universe,
 }
 
@@ -60,6 +60,11 @@ impl<'a> God<'a> {
         if self.universe.in_bounds(nx, ny) {
             self.universe.curr[ny][nx].awake = true;
         }
+    }
+
+    pub fn nudge_neighbors(&mut self) {
+        self.nudge(-1, 0);
+        self.nudge(1, 0);
     }
 
     pub fn accel(&mut self) {

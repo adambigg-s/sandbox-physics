@@ -8,13 +8,16 @@ use macroquad::prelude::*;
 pub const UNIVERSE_HEIGHT: usize = 610;
 pub const UNIVERSE_WIDTH: usize = 825;
 pub const CELL_SIZE: f32 = 2.0; 
+
+// pub const UNIVERSE_HEIGHT: usize = 300;
+// pub const UNIVERSE_WIDTH: usize = 350;
+// pub const CELL_SIZE: f32 = 3.0; 
+
+
+
 pub const GRAVITY: f32 = 0.05;
 pub const SPEED_MAX: f32 = 4.0;
 pub const FALLING_START: f32 = 2.0;
-// pub const UNIVERSE_HEIGHT: usize = 230;
-// pub const UNIVERSE_WIDTH: usize = 255;
-// pub const CELL_SIZE: f32 = 5.0; 
-
 
 
 
